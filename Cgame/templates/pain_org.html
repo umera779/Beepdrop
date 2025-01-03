@@ -1,0 +1,106 @@
+{% load static %}
+{% load humanize %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Beep</title>
+    <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/boxicons.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/pain.css' %}">
+    <link rel="stylesheet" href="{% static 'css/popup.css' %}">
+</head>
+
+<!-- Load jQuery -->
+<script src="{% static 'js/jquery-3.6.0.min.js' %}"></script>
+<body>
+    <div class="app-container" id="app">
+        <!-- Header -->
+        <div class="top-row">
+            <span class="username" style="font-family: arial;">{{request.user}}</span> 
+            <button class="top-button-2">{{level}}</button> 
+
+            <button class="top-button">{{request.user.mining.speed | intcomma}} words/hr</i></button> 
+        </div>
+            <div class="counter-container">
+              <img src="{% static 'images/header.png'%}" width="100" height="100" alt="Key Image">
+              <span id="counter-value" class="balance">{{ counter.value | intcomma}}  </span>
+              <button id="refresh-balance" class="refresh"><i class='bx bx-refresh'></i></button>
+            </div>
+<hr class="hr-line">
+    <p class="leaderboard-text">-Leaderboard-</p>        
+    <div class="leaderboard-container">
+
+        
+        <div class="participant first-place" style="left: 50%;">
+            <div class="rank">1st</div>
+            <img src="https://via.placeholder.com/80" alt="First Place">
+            <div class="name">{{ leaderboard.0.username }}</div>
+            <div class="score">{{ leaderboard.0.balance|intcomma }} keys</div>
+        </div>
+        
+          
+        <!-- Second Place -->
+        <div class="participant second-place">
+            <div class="rank">2nd</div>
+            <img src="https://via.placeholder.com/80" alt="Second Place">
+            <div class="name">{{ leaderboard.1.username }}</div>
+            <div class="score">{{ leaderboard.1.balance|intcomma }} keys</div>
+        </div>
+
+        <!-- Third Place -->
+        <div class="participant third-place">
+            <div class="rank">3rd</div>
+            <img src="https://via.placeholder.com/80" alt="Third Place">
+            <div class="name">{{ leaderboard.2.username }}</div>
+            <div class="score">{{ leaderboard.2.balance|intcomma }} keys</div>
+        </div>
+    </div>
+    <!--pop up here-->
+     <div id="overlay"></div>
+    <div id="popup">
+        <button class="close-btn" id="close-btn">&times;</button>
+        <div id="popup-content">Loading...</div> <!-- Content will be loaded here -->
+    </div>
+
+        <div class="avatar-lists">
+    <!-- Left Avatar List -->
+    <div class="avatar-list avatar-list-left">
+        <button>
+            <a href="#"><i class="bx bx-user-plus"></i></a>
+            <span>Invite</span>
+        </button>
+        <button>
+            <a href="wallet" class='ajax-link'><i class="bx bx-wallet"></i></a>
+            <span>Wallet</span>
+        </button>
+    </div>
+
+    <!-- Right Avatar List -->
+    <div class="avatar-list avatar-list-right">
+        <button>
+            <a href="boost/"><i class="bx bx-rocket"></i></a>
+            <span>Boost</span>
+        </button>
+        <button>
+            <a href="task"><i class="bx bx-task"></i></a>
+            <span>Task</span>
+        </button>
+    </div>
+</div>
+
+         <div class="typing-box">
+            <form id="counter-form" method="post" action="{% url 'increment_counter' %}">
+                {% csrf_token %}
+                <button id="mine-btn-js" class="mine-btn">Start Mining Keys!</button>
+            </form>
+        </div>
+    </div>
+        <script src="{% static 'js/pain.js' %}"></script>
+        <script src="{% static 'js/popup.js' %}"></script>
+        <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>  
+        <script src="{% static 'js/counter_refresh.js' %}"></script>
+</body>
+
+</html>

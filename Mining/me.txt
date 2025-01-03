@@ -1,0 +1,35 @@
+HOW POS MACHINE COULD BE HACKED(Monipoint, Palmpay, Baxi, FirstMonie etc.).
+PS: All this are all theoretical i'm yet to try them, due to the fact i don't have this devices available to me.
+
+In theory, POS Machine are just mini versions of a real ATM Machine with a much limited but efficient abilities.
+They run on the android operating system and comprises of pretty most basic functionality found in an android device, these includes Wifi, Hotspot, Bluetooth etc. Most of them like Baxi even includes a File Manager and Phone App for making calls.
+
+From my discoveries 67% of this devices runs on lower version of android like Monipoint POS etc. How do i know?
+The battery charging state indicator that displays when the machine(Monipoint) is switched off and charged only appears from android versions of >= 6 and above. 
+
+HOW CAN I EXPLOIT THIS?
+PS: This is not a Zero Click attack.
+
+1. Android Debug: If android debug bridge aka ADB is turned on which happens by default on lower versions on android and rooted devices. One could connect the POS machine to a computer via USB type C cable(as most of them use USB Type C) running "phonesploit" and the rest is history.
+
+2. BlueDucky attack: Since this devices have bluetooth configured and enabled a blueducky attacked can be launched against the device.
+
+3. Upload Payloads: For POS machines like Baxi(Which i've used before) you could transfer an android payload via bluetooth to the device and install it. Again the rest is history.
+
+4. MITM attacks: If both devices i.e attacker and victim are connected on the same network via "Wifi" an MITM attack can be launched against the device.
+
+5. Many more attack could be carried out on the device like Keylogging etc.
+
+HOW TO BE SAFE
+1. Don't share your Hotspot you're using to connect with your POS machine with third party. Even if you do change the password later to avoid automatic connection when in close range.
+
+2. Turn off bluetooth when not in use
+
+3. Do not plug your POS machine to a Laptop in the name of charging it. You go pity ya self later.
+
+4. Forget about popularity and go for more secure POS machine.
+
+5. Ask for android versions before purchasing to avoid "Who send me?"
+
+Thanks for your time.
+Emmanuel Umera 

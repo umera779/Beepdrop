@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% load static %}
+{% load humanize %}
+
+    {% block title %}
+    Beep | Leaderboard
+    {% endblock %}
+
+
+{% block content %}
+<body class="dark:bg-gray-700  dark:focus:ring-gray-700">
+
+  <div class="max-w-2xl mx-auto mt-8 bg-white shadow-md rounded-lg p-6 bg-gray-50 dark:bg-gray-700 dark:border-gray-600 ">
+    <h2 class="text-2xl font-bold text-center text-white-200 mb-4 ">Leaderboard</h2>
+       <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg mb-4 shadow ">
+      <div>
+        <p class="text-ls font-semibold text-gray-800">You're ranked: {{ current_user_position|intcomma }}</p>
+      </div>
+      
+    </div>
+    {%for users in leaderboard%}
+    <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg mb-4 shadow text-white bg-white border-t border-gray-200 left-1/2 dark:bg-gray-700 dark:border-gray-600">
+      <div>
+        <p class="text-lg font-semibold text-white-800">{{ users.username }}</p>
+        <p class="text-sm text-gray-300">{{ users.balance|intcomma }} keys</p>
+      
+      </div>
+      <button class="bg-blue-500 text-white px-4 py-2 text-sm rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300">
+        ranked #{{users.id}}
+      </button>
+    </div>
+    {%endfor %}
+  </div>
+
+{% endblock %}
+</body>
+</html>

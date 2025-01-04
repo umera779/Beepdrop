@@ -1,0 +1,67 @@
+{% comment %} {% extends "base.html" %}
+
+{% block content %}
+  <h2>Resend Verification Email</h2>
+  <form method="post">
+    {% csrf_token %}
+    <label for="email">Enter your email address:</label>
+    <input type="email" name="email" id="email" required>
+    <button type="submit">Resend Email</button>
+  </form>
+  {% if messages %}
+    <ul>
+      {% for message in messages %}
+        <li>{{ message }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+{% endblock %} {% endcomment %}
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Beep | Verification Email</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-800">
+  <div class="w-full max-w-sm bg-white rounded-lg shadow-md p-6 dark:bg-gray-700">
+    <h2 class="text-2xl font-bold text-center text-gray-800 dark:text-gray-100">Verify Email | Beep</h2>
+    <form method="post" class="mt-6">
+      {% csrf_token %}
+      <div class="mb-4">
+        <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Email Address</label>
+        <input 
+          type="email" 
+          id="email" 
+          name="email"
+          class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm dark:bg-gray-600 dark:border-gray-500 dark:text-gray-200 dark:placeholder-gray-400"
+          placeholder="Enter your email" 
+          required
+        >
+      </div>
+      <button 
+        type="submit" 
+        class="w-full bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 focus:ring focus:ring-indigo-400 focus:outline-none dark:bg-indigo-500 dark:hover:bg-indigo-400 dark:focus:ring-indigo-500"
+      >
+        Resend Email
+      </button>
+    </form>
+    <p class="mt-4 text-center text-sm text-gray-600 dark:text-gray-300">
+      <a href="{% url 'login' %}" class="text-indigo-600 hover:underline dark:text-indigo-400">Login</a>
+      |
+      <a href="{% url 'signup' %}" class="text-indigo-600 hover:underline dark:text-indigo-400">Sign Up</a>
+    </p>
+    {% if messages %}
+      <ul class="mt-4 text-center text-red-500 text-sm">
+        {% for message in messages %}
+          <li>{{ message }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  </div>
+</body>
+</html>

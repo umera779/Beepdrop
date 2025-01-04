@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}
+Beep | Boost
+{% endblock %}
+<script src="{% static 'js/task.js'%}"></script>
+<script src="{% static 'js/boost.js' %}"></script>
+<link rel="stylesheet" href="{% static 'css/boost.css' %}">
+</head>
+
+{% block content %}
+<body class="dark:bg-gray-700  dark:focus:ring-gray-700">
+  <div class="max-w-2xl mx-auto mt-8 bg-white shadow-md rounded-lg p-6 bg-gray-50 dark:bg-gray-700 dark:border-gray-600 ">
+    <h2 class="text-2xl font-bold text-center text-green-200 mb-4 ">Boost</h2>
+
+      {% if messages %}
+        {% for message in messages %}
+        <div id="popup" class="popup">
+        <center><p style="color:white;">{{ message }}</p></center>
+        </div>
+        {% endfor %}
+        {% endif %}
+
+   {% for boosting_rate in boosting_rate %}
+    <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg mb-4 shadow text-white bg-white border-t border-gray-200 left-1/2 dark:bg-gray-700 dark:border-gray-600">
+      <div>
+        <p class="text-lg font-semibold text-white-800">{{ boosting_rate.boost_name }}</p>
+        <p class="text-sm text-gray-300"> {{ boosting_rate.boost_value |intcomma}} keys | requires: {{ boosting_rate.needed_coin |intcomma}} keys</p>
+
+      </div>
+    <form id="boostForm-{{ boosting_rate.id }}" method="POST">
+    {% csrf_token %}
+    <input type="hidden" name="booster_value" value="{{ boosting_rate.boost_value }}">
+    <input type="hidden" name="needed_value" value="{{ boosting_rate.needed_coin }}">
+    <input type="hidden" name="boost_id" value="{{ boosting_rate.id }}">
+    <button  type="submit" class="bg-blue-500 text-white px-4 py-2 text-sm rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300">
+      Boost
+      </button>
+    </form>
+    </div>
+    {%endfor %}
+  </div>
+
+{% endblock%}
+</body>
+
+</html>

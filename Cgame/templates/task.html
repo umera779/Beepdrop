@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% load static %}
+{% load humanize %}
+
+    {% block title %}
+    Beep | Task
+    {% endblock %}
+    <script src="{% static 'js/task.js'%}"></script>
+
+
+
+{% block content %}
+<body class="dark:bg-gray-700 dark:focus:ring-gray-700">
+  <div class="max-w-2xl mx-auto mt-8 bg-white shadow-md rounded-lg p-6 bg-gray-50 dark:bg-gray-700 dark:border-gray-600 ">
+    <h2 class="text-2xl font-bold text-center text-red-200 mb-4 ">Available Task</h2>
+     
+    {%for task in tasklist %}
+    <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg mb-4 shadow text-white bg-white border-t border-gray-200 left-1/2 dark:bg-gray-700 dark:border-gray-600">
+      <div>
+        <p class="text-lg font-semibold text-white-800">{{ task.Taskname }}</p>
+        <p class="text-sm text-gray-300"> {{ task.Taskvalue |intcomma}} keys</p>
+
+      </div>
+       <form method="post" action="task" class="task-action">
+                    {% csrf_token %}
+                    <input type="hidden" name="taskvalue" value="{{ task.Taskvalue }}">
+                    <input type="hidden" name="task_id" value="{{ task.id }}">
+                    <input type="hidden" name="redirect_url" value="{{task.link}}"/>
+      <button type="submit" class="bg-green-500 text-white px-4 py-2 text-sm rounded-lg focus:outline-none ">
+        Go
+      </button>
+    </form>
+    </div>
+    {%endfor %}
+  </div>
+{% endblock %}
+
+</body>
+</html>
+

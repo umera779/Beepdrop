@@ -1,0 +1,23 @@
+
+/* Popup styling */
+.popup {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #000;
+    color: white;
+    padding: 15px 25px;
+    border-radius: 8px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.5s ease, visibility 0.5s ease;
+    z-index: 1000;
+    text-align:center;
+}
+
+.popup.show {
+    opacity: 1;
+    visibility: visible;
+}
+

@@ -10,12 +10,14 @@
 
 
 {% block content %}
-<body class="dark:bg-gray-700 dark:focus:ring-gray-700">
-  <div class="max-w-2xl mx-auto mt-8 bg-white shadow-md rounded-lg p-6 bg-gray-50 dark:bg-gray-700 dark:border-gray-600 ">
+<body class="bg-gray-800  dark:focus:ring-gray-700">
+  <div class="max-w-2xl mx-auto mt-8 bg-gray-900 shadow-md rounded-lg p-6 bg-gray-50 dark:bg-gray-700 dark:border-gray-600 ">
     <h2 class="text-2xl font-bold text-center text-red-200 mb-4 ">Available Task</h2>
      
     {%for task in tasklist %}
-    <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg mb-4 shadow text-white bg-white border-t border-gray-200 left-1/2 dark:bg-gray-700 dark:border-gray-600">
+    {% comment %} <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg mb-4 shadow text-white bg-white border-t border-gray-200 left-1/2 dark:bg-gray-700 dark:border-gray-600"> {% endcomment %}
+        <div class="flex items-center justify-between p-4 bg-gray-800 rounded-lg mb-4 shadow text-white bg-gray-800 border-t border-gray-200 left-1/2 dark:bg-gray-700 dark:border-gray-600">
+
       <div>
         <p class="text-lg font-semibold text-white-800">{{ task.Taskname }}</p>
         <p class="text-sm text-gray-300"> {{ task.Taskvalue |intcomma}} keys</p>

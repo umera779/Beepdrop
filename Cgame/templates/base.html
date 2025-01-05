@@ -26,11 +26,11 @@
         <!-- Content for each page will go here -->
 {% endblock %}
 {% block sidebar %}
-<div class="fixed bottom-0 z-50 w-full -translate-x-1/2 bg-white border-t border-gray-200 left-1/2 dark:bg-gray-700 dark:border-gray-600">
+<div class="fixed bottom-0 z-50 w-full -translate-x-1/2 bg-gray-800 border-t border-gray-200 left-1/2 dark:bg-gray-700 dark:border-gray-600">
   
     <div class="grid h-full max-w-lg grid-cols-5 mx-auto">
         <button data-tooltip-target="tooltip-home" type="button" class="inline-flex flex-col items-center justify-center p-4 hover:bg-gray-50 dark:hover:bg-gray-800 group">
-         <a href="/"><img src="{% static 'images/home.png'%}" alt="Rocket" class="w-5 h-5 mb-1 group-hover:opacity-75"></a>
+         <a href="/"><img src="{% static 'images/home.png'%}" alt="Rocket" class="w-5 h-5 mb-1 group-hover:opacity-95"></a>
             <span class="sr-only">Home</span>
         </button>
         <div id="tooltip-home" role="tooltip" class="absolute z-10 invisible inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-700">
@@ -39,7 +39,7 @@
         </div>
         <!-- Rocket Button -->
 <button data-tooltip-target="tooltip-rocket" type="button" class="inline-flex flex-col items-center justify-center p-4 hover:bg-gray-50 dark:hover:bg-gray-800 group">
-   <a href="{% url 'boost' %}"> <img src="{% static 'images/shuttle.png'%}"   alt="Rocket" class="w-5 h-5 mb-1 group-hover:opacity-75"></a>
+   <a href="{% url 'boost' %}"> <img src="{% static 'images/shuttle.png'%}"   alt="Rocket" class="w-5 h-5 mb-1 group-hover:opacity-95"></a>
     <span class="sr-only">Rocket</span>
 </button>
 <div id="tooltip-rocket" role="tooltip" class="absolute z-10 invisible inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-700">
@@ -49,7 +49,7 @@
 
 <!-- Invite Button -->
 <button data-tooltip-target="tooltip-invite" type="button" class="inline-flex flex-col items-center justify-center p-4 hover:bg-gray-50 dark:hover:bg-gray-800 group">
-   <a href="#"> <img src="{% static 'images/invite.png'%}" alt="Invite" class="w-5 h-5 mb-1 group-hover:opacity-75"></a>
+   <a href="#"> <img src="{% static 'images/invite.png'%}" alt="Invite" class="w-5 h-5 mb-1 group-hover:opacity-95"></a>
     <span class="sr-only">Invite</span>
 </button>
 <div id="tooltip-invite" role="tooltip" class="absolute z-10 invisible inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-700">
@@ -59,7 +59,7 @@
 
 <!-- Task Button -->
 <button data-tooltip-target="tooltip-invite" type="button" class="inline-flex flex-col items-center justify-center p-4 hover:bg-gray-50 dark:hover:bg-gray-800 group">
-   <a href="{% url 'task'%}"> <img src="{% static 'images/task.png'%}" alt="Invite" class="w-5 h-5 mb-1 group-hover:opacity-75"></a>
+   <a href="{% url 'task'%}"> <img src="{% static 'images/task.png'%}" alt="Invite" class="w-5 h-5 mb-1 group-hover:opacity-95"></a>
     <span class="sr-only">Task</span>
 </button>
 <div id="tooltip-invite" role="tooltip" class="absolute z-10 invisible inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-700">
@@ -72,7 +72,7 @@
 
 <!-- leaderboard Button -->
 <button data-tooltip-target="tooltip-wallet" type="button" class="inline-flex flex-col items-center justify-center p-4 hover:bg-gray-50 dark:hover:bg-gray-800 group">
-   <a href="{% url 'leaderboard'%}"> <img src= "{% static 'images/leaderboard.png'%}" alt="Wallet" class="w-5 h-5 mb-1 group-hover:opacity-75"></a>
+   <a href="{% url 'leaderboard'%}"> <img src= "{% static 'images/leaderboard.png'%}" alt="Wallet" class="w-5 h-5 mb-1 group-hover:opacity-95"></a>
     <span class="sr-only">Leaderboard</span>
 </button>
 <div id="tooltip-wallet" role="tooltip" class="absolute z-10 invisible inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-700">

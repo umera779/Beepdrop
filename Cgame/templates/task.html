@@ -11,8 +11,7 @@
   <div class="max-w-2xl mx-auto mt-8 bg-gray-900 shadow-md rounded-lg p-6 bg-gray-50 dark:bg-gray-700 dark:border-gray-600 ">
     <h2 class="text-2xl font-bold text-center text-red-200 mb-4 ">Available Task</h2>
      
-    {%for task in tasklist %}
-    {% comment %} <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg mb-4 shadow text-white bg-white border-t border-gray-200 left-1/2 dark:bg-gray-700 dark:border-gray-600"> {% endcomment %}
+  {%for task in tasklist %}
         <div class="flex items-center justify-between p-4 bg-gray-800 rounded-lg mb-4 shadow text-white bg-gray-800 border-t border-gray-200 left-1/2 dark:bg-gray-700 dark:border-gray-600">
 
       <div>
@@ -20,7 +19,7 @@
         <p class="text-sm text-gray-300"> {{ task.Taskvalue |intcomma}} keys</p>
 
       </div>
-       <form method="post" action="task" class="task-action">
+       <form method="post" action="task" class="task-action" onsubmit="handleFormSubmit(this); return false;">
                     {% csrf_token %}
                     <input type="hidden" name="taskvalue" value="{{ task.Taskvalue }}">
                     <input type="hidden" name="task_id" value="{{ task.id }}">
@@ -29,11 +28,28 @@
         Go
       </button>
     </form>
-    </div>
-    {%endfor %}
+</div>
+{%endfor%}
   </div>
 {% endblock %}
 
 </body>
+<script>
+  function handleFormSubmit(form) {
+    const redirectUrl = form.querySelector('input[name="redirect_url"]').value;
+
+    if (window.Telegram?.WebApp) {
+      // Open the link within Telegram's Mini App
+      window.Telegram.WebApp.openLink(redirectUrl);
+    } else {
+      // Fallback to opening in a new tab
+      window.open(redirectUrl, '_blank');
+    }
+
+    // Optionally submit the form to your server
+    form.submit();
+  }
+</script>
+
 </html>
 

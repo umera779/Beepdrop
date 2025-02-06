@@ -9,9 +9,8 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('',views.home, name='home'),
-    path('increment/', views.increment_counter, name='increment_counter'),
+    # path('increment/', views.increment_counter, name='increment_counter'),
     path('task',views.taskList, name='task'),
-    path('boost/', views.boost, name='boost'),
     path('signup/', views.signup, name='signup'),
     path('login/', views.login_view, name='login'),
     path('resend-verification-email/', views.resend_verification_email, name='resend_verification_email'),
@@ -20,6 +19,8 @@ urlpatterns = [
     path('update-button-state/', views.update_button_state, name='update_button_state'),
     path('api/balance/', views.get_balance, name='get_balance'),
     path('activate/<uidb64>/<token>/', views.activate, name='activate'),
+    path('referrals/', views.referral_dashboard, name='referral_dashboard'),
+    path('register/', views.register_with_referral, name='register'),
 ]
 if settings.DEBUG is False:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

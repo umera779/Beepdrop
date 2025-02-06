@@ -4,6 +4,38 @@ from django.conf import settings
 from django.utils.timezone import now
 from django.core.mail import send_mail
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
+from django.contrib.auth.models import User
+from django.utils.crypto import get_random_string
+from django.conf import settings
+
+class ReferralCode(models.Model):
+    user = models.OneToOneField('CustomUser', on_delete=models.CASCADE, related_name='referral_code')
+    code = models.CharField(max_length=20, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        if not self.code:
+            # Generate a unique referral code
+            self.code = get_random_string(12)
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.user.username}'s referral code: {self.code}"
+
+class Referral(models.Model):
+    referrer = models.ForeignKey('CustomUser', on_delete=models.CASCADE, related_name='referrals_made')
+    referred_user = models.OneToOneField('CustomUser', on_delete=models.CASCADE, related_name='referred_by')
+    created_at = models.DateTimeField(auto_now_add=True)
+    reward_claimed = models.BooleanField(default=False)
+
+    class Meta:
+        unique_together = ('referrer', 'referred_user')
+
+    def __str__(self):
+        return f"{self.referrer.username} referred {self.referred_user.username}"
+
+
+
 
 # Counter model that links to the User
 class Counter(models.Model):
@@ -13,33 +45,7 @@ class Counter(models.Model):
     def __str__(self):
         return f"BALANCE: {self.value} \t \t USER={self.user}"
 
-# Level model that links to the User
-class Level(models.Model):
-    user = models.OneToOneField('CustomUser', on_delete=models.CASCADE, related_name="level")
-    level = models.PositiveIntegerField(null=True, blank=True, default=1)  # Default to level 1
 
-    def __str__(self):
-        return f"level: {self.level}"
-
-# Mining model that links to the User
-class Mining(models.Model):
-    user = models.OneToOneField('CustomUser', on_delete=models.CASCADE, related_name="mining")
-    speed = models.PositiveIntegerField(default=3000, blank=True, null=True)  # Default mining speed
-
-    def __str__(self):
-        return f"MINING SPEED: {self.speed} USER={self.user}"
-
-# Boost model that links to the User
-class Boost(models.Model):
-    assigned_users = models.ManyToManyField('CustomUser', related_name='boost')
-    boost_name = models.CharField(max_length=100, blank=True, null=True)
-    boost_value = models.PositiveIntegerField(blank=True, null=True)
-    needed_coin = models.PositiveIntegerField(blank=True, null=True)
-    level = models.CharField(blank=True, null=True, max_length=20, unique=False)
-    def __str__(self):
-        return f"Boost name: {self.boost_name} | Boost value: {self.boost_value} | Needed coin: {self.needed_coin}"
-
-# This model links users to the boosts they've used
 
 
 # TaskList model that links to the User
@@ -47,6 +53,7 @@ class TaskList(models.Model):
     Taskname = models.CharField(max_length=100)
     Taskvalue = models.PositiveIntegerField(default=0)
     link = models.URLField(max_length=200, blank=True, null=True)
+    description = models.CharField(max_length=100, blank=True, null=True)
     assigned_users = models.ManyToManyField('CustomUser', related_name="tasks")
 
     def __str__(self):
@@ -109,18 +116,10 @@ class CustomUserManager(BaseUserManager):
         Mining.objects.create(user=user)
         Level.objects.create(user=user)
 
-        # Create Boost and TaskList instances and associate the user
-        boost = Boost.objects.create(
-            boost_name="Default Boost",
-            boost_value=0,
-            needed_coin=0,
-            level="Default"
-        )
-        boost.assigned_users.add(user)
 
         task = TaskList.objects.create(
             Taskname="Default Task",
-            Taskvalue=0
+            Taskvalue=1000
         )
         task.assigned_users.add(user)
 # Custom User model

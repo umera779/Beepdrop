@@ -186,48 +186,96 @@ def leaderboard(request):
 User = get_user_model()
 
 # Signup View
+# def signup(request):
+#     if request.method == 'POST':
+#         form = CustomUserCreationForm(request.POST)
+#         if form.is_valid():
+#             user = form.save(commit=False)
+#             user.is_active = False
+#             user.save()
+#             current_site = get_current_site(request)
+            
+#             mail_subject = 'Activate your account.'
+#             message = render_to_string('activation_email.html', {
+#                 'user': user,
+#                 'domain': current_site.domain,
+#                 'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+#                 'token': account_activation_token.make_token(user),
+#             })
+#             print(message)
+#             to_email = form.cleaned_data.get('email')
+#             email = EmailMessage(
+#                 mail_subject,
+#                 message,
+#                 'emmanuelumera@yahoo.com',
+#                 [to_email],
+#             )
+#             email.content_subtype = 'html'  # Set the email content type to HTML
+#             email.send()
+
+#             messages.success(request, 'Please confirm your email to complete the registration.')
+#             return redirect('login')
+#     else:
+#         form = CustomUserCreationForm()
+#     return render(request, 'signup.html', {'form': form})
+
+# from django.core.mail import EmailMessage, SMTPException
+# from django.contrib import messages
+
 def signup(request):
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
-            user = form.save(commit=False)
-            user.is_active = False
-            user.save()
-            current_site = get_current_site(request)
-            # mail_subject = 'Activate your account.'
-            # message = render_to_string('activation_email.html', {
-            #     'user': user,
-            #     'domain': current_site.domain,
-            #     'uid': urlsafe_base64_encode(force_bytes(user.pk)),
-            #     'token': account_activation_token.make_token(user),
-            # })
-            # to_email = form.cleaned_data.get('email')
-            # send_mail(mail_subject, message, 'emmanuelumera@yahoo.com', [to_email])
-            mail_subject = 'Activate your account.'
-            message = render_to_string('activation_email.html', {
-                'user': user,
-                'domain': current_site.domain,
-                'uid': urlsafe_base64_encode(force_bytes(user.pk)),
-                'token': account_activation_token.make_token(user),
-            })
-            print(message)
-            to_email = form.cleaned_data.get('email')
-            email = EmailMessage(
-                mail_subject,
-                message,
-                'emmanuelumera@yahoo.com',
-                [to_email],
-            )
-            email.content_subtype = 'html'  # Set the email content type to HTML
-            email.send()
+            try:
+                # Create user but don't save yet
+                user = form.save(commit=False)
+                user.is_active = False
+                user.save()
 
-            messages.success(request, 'Please confirm your email to complete the registration.')
-            return redirect('login')
-    else:
-        form = CustomUserCreationForm()
+                # Prepare email
+                current_site = get_current_site(request)
+                mail_subject = 'Activate your account.'
+                message = render_to_string('activation_email.html', {
+                    'user': user,
+                    'domain': current_site.domain,
+                    'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+                    'token': account_activation_token.make_token(user),
+                })
+
+                to_email = form.cleaned_data.get('email')
+                email = EmailMessage(
+                    mail_subject,
+                    message,
+                    'emmanuelumera@yahoo.com',
+                    [to_email],
+                )
+                email.content_subtype = 'html'
+
+                # Try to send email
+                try:
+                    email.send()
+                    messages.success(request, 'Please confirm your email to complete the registration.')
+                    return redirect('login')
+                except (SMTPException, ConnectionError) as e:
+                    # If email fails, delete the inactive user and show error
+                    user.delete()
+                    messages.error(request, 'Failed to send verification email. Please try again later.')
+                    return render(request, 'signup.html', {'form': form})
+
+            except Exception as e:
+                user.delete()
+                # Handle any other unexpected errors
+                messages.error(request, 'An unexpected error occurred. Please try again.')
+                return render(request, 'signup.html', {'form': form})
+        
+        else:
+            # Form is invalid, return to signup with errors
+            return render(request, 'signup.html', {'form': form})
+    
+    # GET request - show empty form
+    form = CustomUserCreationForm()
     return render(request, 'signup.html', {'form': form})
-
-
+    
 # Activation View
 def activate(request, uidb64, token):
     try:
@@ -305,52 +353,64 @@ def register_with_referral(request):
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
-            user = form.save(commit=False)
-            user.is_active = False
-            user.save()
-            current_site = get_current_site(request)   
+            try:
 
-            # Check for referral code
-            referral_code = request.session.get('referral_code')
-            if referral_code:
-                try:
-                    referrer_code = ReferralCode.objects.get(code=referral_code)
-                    referrer = referrer_code.user
-                    # print(referrer.counter.value)
-                    
-                    # Prevent self-referral
-                    if referrer != user:
-                        # Check if user hasn't been referred before
-                        if not Referral.objects.filter(referred_user=user).exists():
-                            Referral.objects.create(
-                                referrer=referrer,
-                                referred_user=user
-                            )
-                            
-                            mail_subject = 'Activate your account.'
-                            message = render_to_string('activation_email.html', {
-                                'user': user,
-                                'domain': current_site.domain,
-                                'uid': urlsafe_base64_encode(force_bytes(user.pk)),
-                                'token': account_activation_token.make_token(user),
-                            })
-                            print(message)
-                            to_email = form.cleaned_data.get('email')
-                            email = EmailMessage(
-                                mail_subject,
-                                message,
-                                'emmanuelumera@yahoo.com',
-                                [to_email],
-                            )
-                            email.content_subtype = 'html'  # Set the email content type to HTML
-                            email.send()
+                user = form.save(commit=False)
+                user.is_active = False
+                user.save()
+                current_site = get_current_site(request)   
 
-                            messages.success(request, 'Please confirm your email to complete the registration.')
-                            process_referral_reward(referrer)
-                except ReferralCode.DoesNotExist:
-                    messages.error(request, 'Your referral code was Invalid. Verify your email address')
-            
-            return redirect('signup')
+                # Check for referral code
+                referral_code = request.session.get('referral_code')
+                if referral_code:
+                    try:
+                        referrer_code = ReferralCode.objects.get(code=referral_code)
+                        referrer = referrer_code.user
+                        # print(referrer.counter.value)
+                        
+                        # Prevent self-referral
+                        if referrer != user:
+                            # Check if user hasn't been referred before
+                            if not Referral.objects.filter(referred_user=user).exists():
+                                Referral.objects.create(
+                                    referrer=referrer,
+                                    referred_user=user
+                                )
+                                
+                                mail_subject = 'Activate your account.'
+                                message = render_to_string('activation_email.html', {
+                                    'user': user,
+                                    'domain': current_site.domain,
+                                    'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+                                    'token': account_activation_token.make_token(user),
+                                })
+                                to_email = form.cleaned_data.get('email')
+                                email = EmailMessage(
+                                    mail_subject,
+                                    message,
+                                    'emmanuelumera@yahoo.com',
+                                    [to_email],
+                                )
+                                email.content_subtype = 'html'  # Set the email content type to HTML
+                                try:
+                                    email.send()
+                                    messages.success(request, 'Please confirm your email to complete the registration.')
+                                    return redirect('login')
+                                except (SMTPException, ConnectionError) as e:
+                                    # If email fails, delete the inactive user and show error
+                                    user.delete()
+                                    messages.error(request, 'Failed to send verification email. Please try again later.')
+                                    return render(request, 'signup.html', {'form': current_site})
+
+                    except ReferralCode.DoesNotExist:
+                        messages.error(request, 'Your referral code was Invalid. Verify your email address')
+                
+                return redirect('signup')
+            except Exception as e:
+                user.delete()
+                # Handle any other unexpected errors
+                messages.error(request, 'An unexpected error occurred. Please try again.')
+                return render(request, 'signup.html', {'form': current_site})
     else:
         # Store referral code in session if provided
         ref_code = request.GET.get('ref')

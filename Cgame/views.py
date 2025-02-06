@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from .models import Counter, TaskList, Boost, Mining, Level, CustomUser, ButtonState
+from .models import Counter, TaskList, CustomUser, ButtonState, ReferralCode, Referral
 from django.http import JsonResponse
 from django.contrib import messages
 from django.shortcuts import get_object_or_404
@@ -21,9 +21,11 @@ from django.core.mail import send_mail
 from .tokens import account_activation_token
 from django.core.mail import EmailMessage
 
+from django.urls import reverse
+from django.http import Http404
 @login_required
 def home(request):
-    mining_speed = request.user.mining.speed
+
     # Get the counter object associated with the current user
 
     counter = request.user.counter
@@ -61,7 +63,7 @@ def home(request):
             'balance': players[2].value
         })
 
-    return render(request, 'index.html', {'counter': counter,'mining_speed': mining_speed, 'level':level})
+    return render(request, 'index.html', {'counter': counter,'level':level})
 
 @login_required
 def get_balance(request):
@@ -92,60 +94,28 @@ def update_button_state(request):
         return JsonResponse({'status': 'success'})
     return JsonResponse({'status': 'error'}, status=400)
 
-@login_required
-def increment_counter(request):
-    if request.method == 'POST' and request.user.is_authenticated:
-        # Increment the counter
-        mining_speed = request.user.mining  
-        mining_goat = mining_speed.speed
-        counter = request.user.counter
-        counter.value += int(mining_goat)
-        counter.save()
+# @login_required
+# def increment_counter(request):
+#     if request.method == 'POST' and request.user.is_authenticated:
+#         # Increment the counter
+#         mining_speed = request.user.mining  
+#         mining_goat = mining_speed.speed
+#         counter = request.user.counter
+#         counter.value += int(mining_goat)
+#         counter.save()
 
-        # Update the button state
-        button_state, _ = ButtonState.objects.get_or_create(user=request.user)
-        button_state.state = "clicked"
-        button_state.last_clicked = now()
-        button_state.save()
+#         # Update the button state
+#         button_state, _ = ButtonState.objects.get_or_create(user=request.user)
+#         button_state.state = "clicked"
+#         button_state.last_clicked = now()
+#         button_state.save()
 
-        formatted_counter_value = f"{counter.value:,}"
-        return JsonResponse({'counter_value': formatted_counter_value, 'button_state': button_state.state})
+#         formatted_counter_value = f"{counter.value:,}"
+#         return JsonResponse({'counter_value': formatted_counter_value, 'button_state': button_state.state})
 
-    return JsonResponse({'error': 'Invalid request'}, status=400)
+#     return JsonResponse({'error': 'Invalid request'}, status=400)
 
 
-@login_required
-def boost(request):
-    boosting_rate = Boost.objects.filter(assigned_users=request.user)
-    # Get the boosts available to the current user
-    # boosting_rate = request.user.boost
-    mining_speed = request.user.mining
-    counter = request.user.counter
-
-    if request.method == "POST":
-        boost_rate = request.POST.get('booster_value')
-        needed = request.POST.get('needed_value')
-        boost_id = request.POST.get('boost_id')
-        if boost_rate and boost_id:
-            if counter.value <= int(needed):
-                response_message = "Insufficient Balance"
-                messages.info(request, response_message)
-                return redirect('/boost')
-            else:
-                counter.value -= int(needed)
-                counter.save()
-                mining_speed.speed += int(boost_rate)
-                mining_speed.save()
-                boost_delete = Boost.objects.get(id=boost_id)
-                boost_delete.assigned_users.remove(request.user)
-                response_message = "Successfully Boosted"
-                messages.success(request, response_message)
-        
-                return redirect('/boost')
-    context = {
-        'boosting_rate': boosting_rate,
-    }
-    return render(request, 'boost.html', context)
 
 
 @login_required
@@ -240,6 +210,7 @@ def signup(request):
                 'uid': urlsafe_base64_encode(force_bytes(user.pk)),
                 'token': account_activation_token.make_token(user),
             })
+            print(message)
             to_email = form.cleaned_data.get('email')
             email = EmailMessage(
                 mail_subject,
@@ -269,18 +240,12 @@ def activate(request, uidb64, token):
         user.is_active = True
         user.save()
         Counter.objects.create(user=user, value=2000)
-        Mining.objects.create(user=user, speed=3000)
 
-        boost = Boost.objects.create(
-                boost_name='One time boost',
-                boost_value=1000,
-                needed_coin=20,
-                level='Initial')
-        boost.assigned_users.add(user)
-
-        Level.objects.create(user=user, level=1)
+        # Level.objects.create(user=user, level=1)
         backend = get_backends()[0] 
         user.backend = f"{backend.__module__}.{backend.__class__.__name__}"
+        ##new ##
+        # process_referral_reward(referrer)
 
         messages.success(request, 'Your account has been activated successfully!')
         return redirect('login')
@@ -310,4 +275,113 @@ def resend_verification_email(request):
             messages.error(request, 'No account is associated with this email address.')
 
     return render(request, 'resend_verification_email.html')
+
+
+
+
+@login_required
+def referral_dashboard(request):
+    try:
+        referral_code = request.user.referral_code
+    except ReferralCode.DoesNotExist:
+        referral_code = ReferralCode.objects.create(user=request.user)
+
+    referrals_made = Referral.objects.filter(referrer=request.user)
+    
+    # Generate the full referral URL
+    current_site = get_current_site(request)
+    referral_url = f"http://{current_site.domain}{reverse('register')}?ref={referral_code.code}"
+
+    context = {
+        'referral_code': referral_code,
+        'referral_url': referral_url,
+        'referrals_made': referrals_made,
+        'total_referrals': referrals_made.count(),
+        'pending_rewards': referrals_made.filter(reward_claimed=False).count()
+    }
+    return render(request, 'invite.html', context)
+
+def register_with_referral(request):
+    if request.method == 'POST':
+        form = CustomUserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save(commit=False)
+            user.is_active = False
+            user.save()
+            current_site = get_current_site(request)   
+
+            # Check for referral code
+            referral_code = request.session.get('referral_code')
+            if referral_code:
+                try:
+                    referrer_code = ReferralCode.objects.get(code=referral_code)
+                    referrer = referrer_code.user
+                    # print(referrer.counter.value)
+                    
+                    # Prevent self-referral
+                    if referrer != user:
+                        # Check if user hasn't been referred before
+                        if not Referral.objects.filter(referred_user=user).exists():
+                            Referral.objects.create(
+                                referrer=referrer,
+                                referred_user=user
+                            )
+                            
+                            mail_subject = 'Activate your account.'
+                            message = render_to_string('activation_email.html', {
+                                'user': user,
+                                'domain': current_site.domain,
+                                'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+                                'token': account_activation_token.make_token(user),
+                            })
+                            print(message)
+                            # to_email = form.cleaned_data.get('email')
+                            # email = EmailMessage(
+                            #     mail_subject,
+                            #     message,
+                            #     'emmanuelumera@yahoo.com',
+                            #     [to_email],
+                            # )
+                            # email.content_subtype = 'html'  # Set the email content type to HTML
+                            # email.send()
+
+                            messages.success(request, 'Please confirm your email to complete the registration.')
+                            process_referral_reward(referrer)
+                except ReferralCode.DoesNotExist:
+                    messages.error(request, 'Your referral code was Invalid. Verify your email address')
+            
+            return redirect('signup')
+    else:
+        # Store referral code in session if provided
+        ref_code = request.GET.get('ref')
+        if ref_code:
+            request.session['referral_code'] = ref_code
+        form = CustomUserCreationForm()
+    
+    return render(request, 'signup.html', {'form': form})
+
+
+def process_referral_reward(user):
+    """
+    Process the reward for a successful referral
+    You can customize this based on your reward system
+    """
+    # print(cofond.is_active)
+    # if cofond.is_active == True
+
+    # Example: Add points or tokens to user's account
+    try:
+        referral = Referral.objects.get(referrer=user, reward_claimed=False)
+        # Add your reward logic here
+        # For example:
+
+        user.counter.value += 100000
+        user.counter.save()
+
+        referral.reward_claimed = True
+        referral.save()
+        return True
+    except Referral.DoesNotExist:
+        return False
+
 

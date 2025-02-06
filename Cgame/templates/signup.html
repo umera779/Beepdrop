@@ -1,41 +1,13 @@
- {% comment %} {% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{% static 'css/signup.css' %}">
-
-    <title>Sign Up</title>
-</head>
-<body>
-
-<div class="signup-container">
-    {% if messages %}
-    <ul style="color:red;">
-    {% for message in messages %}
-    <center>{{ message }}</li></center>
-    {% endfor %}
-    </ul>
-{% endif %}
-        <h2>Sign Up</h2>
-        <form method="post">
-            {% csrf_token %}
-            {{ form.as_p }}
-            <button type="submit">Sign Up</button>
-            <p>Or Login <a href="{%url 'login'%}">Here</a></p>
-        </form>
-    </div>
-</body>
-</html> {% endcomment %}
-
+ {% load static %}
  <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Get Started | Beep</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- <script src="https://cdn.tailwindcss.com"></script> -->
+  <link rel="stylesheet" href="{% static 'css/output.css' %}">
+
 </head>
 <body class="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-800">
   <div class="w-full max-w-sm bg-white rounded-lg shadow-md p-6  dark:bg-gray-700">

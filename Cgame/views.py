@@ -335,15 +335,15 @@ def register_with_referral(request):
                                 'token': account_activation_token.make_token(user),
                             })
                             print(message)
-                            # to_email = form.cleaned_data.get('email')
-                            # email = EmailMessage(
-                            #     mail_subject,
-                            #     message,
-                            #     'emmanuelumera@yahoo.com',
-                            #     [to_email],
-                            # )
-                            # email.content_subtype = 'html'  # Set the email content type to HTML
-                            # email.send()
+                            to_email = form.cleaned_data.get('email')
+                            email = EmailMessage(
+                                mail_subject,
+                                message,
+                                'emmanuelumera@yahoo.com',
+                                [to_email],
+                            )
+                            email.content_subtype = 'html'  # Set the email content type to HTML
+                            email.send()
 
                             messages.success(request, 'Please confirm your email to complete the registration.')
                             process_referral_reward(referrer)

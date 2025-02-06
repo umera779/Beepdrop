@@ -1,91 +1,189 @@
- {% load static %}
- <!DOCTYPE html>
+
+{% load static %}
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Get Started | Beep</title>
-  <!-- <script src="https://cdn.tailwindcss.com"></script> -->
-  <link rel="stylesheet" href="{% static 'css/output.css' %}">
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="{% static 'css/output.css' %}">
 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Beep | Get Started</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background:  #1a1a1a;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            width: 100%;
+            max-width: 400px;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .title {
+            font-size: 24px;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 25px;
+            color: #000000;
+        }
+
+        .form {
+            margin-top: 20px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px 15px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        .input-group input:focus {
+            border-color: #667eea;
+        }
+
+        .error-message {
+            color: #e53e3e;
+            font-size: 14px;
+            margin-top: 8px;
+            padding: 10px;
+            background-color: #fff5f5;
+            border-radius: 6px;
+            border: 1px solid #fed7d7;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            color: white;
+            background: #3d3d3d;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            position: relative;
+        }
+
+        .submit-btn:hover {
+            background: #4d4c4c;
+        }
+
+        /* Loading Animation */
+        .loader {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #ffffff;
+            border-bottom-color: transparent;
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation: rotate 1s linear infinite;
+        }
+
+        .submit-btn:focus .loader {
+            display: block;
+        }
+
+        .submit-btn:focus span {
+            visibility: hidden;
+        }
+
+        @keyframes rotate {
+            from { transform: translate(-50%, -50%) rotate(0deg); }
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        /* Mobile Responsive Styles */
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px;
+            }
+
+            .title {
+                font-size: 20px;
+            }
+
+            .input-group input {
+                padding: 10px 12px;
+                font-size: 14px;
+            }
+
+            .submit-btn {
+                padding: 10px;
+                font-size: 14px;
+            }
+        }
+    </style>
 </head>
-<body class="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-800">
-  <div class="w-full max-w-sm bg-white rounded-lg shadow-md p-6  dark:bg-gray-700">
-    <h2 class="text-2xl font-bold text-center text-gray-800 dark:text-gray-100">Get Onboard the Beep ballon </h2>
-    <form method="post" class="mt-6">
-    {% csrf_token %}
-      <div class="mb-4">
-        <label for="email" class="block text-sm font-medium text-gray-700">Email Address</label>
-        <input 
-          type="email" 
-          id="email" 
-          name="email"
-          class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm dark:bg-gray-600 dark:border-gray-500 dark:text-gray-200 dark:placeholder-gray-400"
-          placeholder="Enter your email" 
-          required
-        >
-      </div>
-      <div class="mb-4">
-        <label for="password" class="block text-sm font-medium text-gray-700">Username</label>
-        <input 
-          type="username" 
-          id="username" 
-          name="username"
-          class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm dark:bg-gray-600 dark:border-gray-500 dark:text-gray-200 dark:placeholder-gray-400"
-          placeholder="Enter Username" 
-          required
-        >
-      </div>
+<body>
+    <div class="container">
+        <h1 class="title">Get Onboard the ballon</h1>
+        <form method="POST" class="form">
+            {% csrf_token %}
+            <div class="input-group">
+                <input type="email" name="email"  
+                id="email" placeholder="Email" required>
+            </div>
+            <div class="input-group">
+                <input type="text" name="username" id="username" placeholder="Username" required>
+            </div>
+            <div class="input-group">
+                <input type="password" id="password1" name="password1" placeholder="Password" required>
+            </div>
+            <div class="input-group">
+                <input type="password" id="password2" name="password2" placeholder="Confirm Password" required>
+            </div>
+            {% if form.errors %}
+                <div class="error-message">
+                    {% for field in form %}
+                        {% for error in field.errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    {% endfor %}
+                    {% for error in form.non_field_errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            <button type="submit" class="submit-btn">
+                <span>Sign Up</span>
+                <div class="loader"></div>
+            </button>
+        </form>
+        <p class="mt-4 text-center text-sm  dark:text-gray-100">
 
-      <div class="mb-4">
-        <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
-        <input 
-          type="password" 
-          id="password1" 
-          name="password1"
-          class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm dark:bg-gray-600 dark:border-gray-500 dark:text-gray-200 dark:placeholder-gray-400"
-          placeholder="Enter Password" 
-          required
-        >
-      </div>
-
-
-     <div class="mb-4">
-        <label for="password" class="block text-sm font-medium text-gray-700">Confirm Password</label>
-        <input 
-          type="password" 
-          id="password2" 
-          name="password2"
-          class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm dark:bg-gray-600 dark:border-gray-500 dark:text-gray-200 dark:placeholder-gray-400"
-          placeholder="Confirm Password" 
-          required
-        >
+        <a href="{%url 'login'%}" class="text-indigo-600 hover:underline">Login</a>__
+        <a href="{%url 'resend_verification_email'%}"  class="text-indigo-600 hover:underline">Verify Email</a>
+        </p>
       </div>
 
-      <button 
-        type="submit" 
-        class="w-full bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 focus:ring focus:ring-indigo-400 focus:outline-none dark:bg-indigo-500 dark:hover:bg-indigo-400 dark:focus:ring-indigo-500"
-      >
-        Login
-      </button>
-
-    </form>
-    <p class="mt-4 text-center text-sm  dark:text-gray-100">
-    Or
-      <a href="{%url 'login'%}" class="text-indigo-600 hover:underline">login</a>.
-      <a href="{%url 'resend_verification_email'%}"  class="text-indigo-600 hover:underline">Verify Email</a>
-
-
-    </p>
-       {% if messages %}
-            <ul style="color:red;">
-            {% for message in messages %}
-                <center>{{ message }}</li></center>
-            {% endfor %}
-            </ul>
-        {% endif %}
-  </div>
+    
 </body>
-
 </html>
-

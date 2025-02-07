@@ -188,10 +188,11 @@
 
                         <tr>
                             <td>{{ referral.referred_user.username }}</td>
-                            <td>2{{ referral.created_at|date }}</td>
-                            <td>{% if referral.reward_claimed %}Reward Claimed{% else %}Pending{% endif %}</td>
+                            <td>{{ referral.created_at }}</td>
+                            <td>{{ referral.status }}</td>
                         </tr>
                         {% endfor %}
+
 
                     </tbody>
                 </table>
@@ -201,6 +202,8 @@
             </div>
         </div>
     </div>
+
+ 
 </body>
 <script>
     document.querySelector('.copy-btn').addEventListener('click', function() {

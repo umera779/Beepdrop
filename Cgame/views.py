@@ -168,12 +168,13 @@ def signup(request):
                     'uid': urlsafe_base64_encode(force_bytes(user.pk)),
                     'token': account_activation_token.make_token(user),
                 })
-                print(message)
+                # print(message)
                 to_email = form.cleaned_data.get('email')
+                from_email = 'Geeks Airdrop <emmanuelumera@yahoo.com>'
                 email = EmailMessage(
                     mail_subject,
                     message,
-                    'emmanuelumera@yahoo.com',
+                    from_email,
                     [to_email],
                 )
                 email.content_subtype = 'html'
@@ -271,8 +272,27 @@ def resend_verification_email(request):
                     'uid': urlsafe_base64_encode(force_bytes(user.pk)),
                     'token': account_activation_token.make_token(user),
                 })
-                send_mail(mail_subject, message, 'emmanuelumera@yahoo.com', [email])
-                messages.success(request, 'A new verification email has been sent to your email address.')
+                # send_mail(mail_subject, message, 'emmanuelumera@yahoo.com', [email])
+                # messages.success(request, 'A new verification email has been sent to your email address.')
+                to_email = form.cleaned_data.get('email')
+                from_email = 'Geeks Airdrop <emmanuelumera@yahoo.com>'
+                email = EmailMessage(
+                    mail_subject,
+                    message,
+                    from_email,
+                    [email],
+                )
+                email.content_subtype = 'html'
+
+                # Try to send email
+                try:
+                    email.send()
+                    messages.success(request, 'Please confirm your email to complete the registration.')
+                    return redirect('login')
+                except (SMTPException, ConnectionError) as e:
+                    # If email fails, delete the inactive user and show error
+                    messages.error(request, 'Failed to send verification email. Please try again later.')
+                    return render(request, 'resend_verification_email.html')
         except User.DoesNotExist:
             messages.error(request, 'No account is associated with this email address.')
 
@@ -369,10 +389,11 @@ def register_with_referral(request):
                             })
                             print(message)
                             to_email = form.cleaned_data.get('email')
+                            from_email = 'Geeks Airdrop <emmanuelumera@yahoo.com>'
                             email = EmailMessage(
                                 mail_subject,
                                 message,
-                                'emmanuelumera@yahoo.com',
+                                from_email,
                                 [to_email],
                             )
                             email.content_subtype = 'html'

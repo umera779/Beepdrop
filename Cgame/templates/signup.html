@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="{% static 'css/output.css' %}">
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Beep | Get Started</title>
+    <title>Geeks | Get Started</title>
     <style>
         * {
             margin: 0;
@@ -144,7 +144,7 @@
 </head>
 <body>
     <div class="container">
-        <h1 class="title">Get Onboard the ballon</h1>
+        <h1 class="title">Get Onboard the Geeks ballon</h1>
         <form method="POST" class="form">
             {% csrf_token %}
             <div class="input-group">
@@ -172,6 +172,14 @@
                     {% endfor %}
                 </div>
             {% endif %}
+
+            {% if messages %}
+    {% for message in messages %}
+        <div class="{% if message.tags == 'error' %}error-message{% else %}success-message{% endif %}">
+            {{ message }}
+        </div>
+    {% endfor %}
+{% endif %}
             <button type="submit" class="submit-btn">
                 <span>Sign Up</span>
                 <div class="loader"></div>

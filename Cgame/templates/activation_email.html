@@ -6,17 +6,17 @@
   <title>Account Activation</title>
 </head>
 <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-  <h2>Welcome to Beep!</h2>
+  <h2>Welcome to Geeks!</h2>
   <p>We're so glad to have you onboard the airdrop balloon. You're just a step away from completing the registration process.</p>
   <p>Please click the link below to activate your account:</p>
   <p>
-    <a href="http://{{ domain }}{% url 'activate' uidb64=uid token=token %}" style="color: #fff; background-color: #007bff; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
+    <a href="https://{{ domain }}{% url 'activate' uidb64=uid token=token %}" style="color: #fff; background-color: #007bff; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
       Activate Your Account
     </a>
   </p>
   <p>If the button above doesn't work, copy and paste the following link into your browser:</p>
   <p>
-    http://{{ domain }}{% url 'activate' uidb64=uid token=token %}
+    https://{{ domain }}{% url 'activate' uidb64=uid token=token %}
   </p>
   <p>Thank you for joining us!</p>
 </body>

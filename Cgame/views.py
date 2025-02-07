@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from .models import Counter, TaskList, CustomUser, ButtonState, ReferralCode, Referral
+from .models import Counter, TaskList, CustomUser, ReferralCode, Referral
 from django.http import JsonResponse
 from django.contrib import messages
 from django.shortcuts import get_object_or_404
@@ -75,47 +75,8 @@ def get_balance(request):
     formatted_counter_value = f"{request.user.counter.value:,}"
     return JsonResponse({'balance': formatted_counter_value})
 
-@login_required
-def get_button_state(request):
-    if request.user.is_authenticated:
-        button_state, created = ButtonState.objects.get_or_create(user=request.user)
-        remaining_time = button_state.get_remaining_time()
-        return JsonResponse({
-            'state': button_state.state,
-            'remaining_time': remaining_time
-        })
-    return JsonResponse({'state': 'unclicked', 'remaining_time': 0})
 
-@login_required
-def update_button_state(request):
-    if request.method == 'POST' and request.user.is_authenticated:
-        button_state, created = ButtonState.objects.get_or_create(user=request.user)
-        button_state.state = 'clicked'
-        button_state.last_clicked = now()
-        button_state.save()
-        return JsonResponse({'status': 'success'})
-    return JsonResponse({'status': 'error'}, status=400)
 
-# @login_required
-# def increment_counter(request):
-#     if request.method == 'POST' and request.user.is_authenticated:
-#         # Increment the counter
-#         mining_speed = request.user.mining  
-#         mining_goat = mining_speed.speed
-#         counter = request.user.counter
-#         counter.value += int(mining_goat)
-#         counter.save()
-
-#         # Update the button state
-#         button_state, _ = ButtonState.objects.get_or_create(user=request.user)
-#         button_state.state = "clicked"
-#         button_state.last_clicked = now()
-#         button_state.save()
-
-#         formatted_counter_value = f"{counter.value:,}"
-#         return JsonResponse({'counter_value': formatted_counter_value, 'button_state': button_state.state})
-
-#     return JsonResponse({'error': 'Invalid request'}, status=400)
 
 
 
@@ -321,29 +282,6 @@ def resend_verification_email(request):
 
 
 @login_required
-# def referral_dashboard(request):
-#     try:
-#         referral_code = request.user.referral_codes
-#     except ReferralCode.DoesNotExist:
-#         referral_code = ReferralCode.objects.create(user=request.user)
-
-#     referrals_made = Referral.objects.filter(referrer=request.user)
-    
-#     # Generate the full referral URL
-#     current_site = get_current_site(request)
-#     referral_url = f"http://{current_site.domain}{reverse('register')}?ref={referral_code.code}"
-
-#     context = {
-#         'referral_code': referral_code,
-#         'referral_url': referral_url,
-#         'referrals_made': referrals_made,
-#         'total_referrals': referrals_made.count(),
-#         'pending_rewards': referrals_made.filter(reward_claimed=False).count()
-#     }
-#     return render(request, 'invite.html', context)
-
-
-
 def referral_dashboard(request):
     try:
         # Try to get existing referral code
@@ -360,7 +298,8 @@ def referral_dashboard(request):
 
     # Generate the full referral URL
     current_site = get_current_site(request)
-    referral_url = f"http://{current_site.domain}{reverse('register')}?ref={referral_code.code}"
+    # referral_url = f"http://{current_site.domain}{reverse('register')}?ref={referral_code.code}"
+    referral_url = f"https://{current_site.domain}{reverse('register')}?ref={referral_code.code}" #use https in production
 
     # Prepare context for template
     context = {

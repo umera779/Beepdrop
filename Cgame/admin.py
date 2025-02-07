@@ -1,8 +1,7 @@
 from django.contrib import admin
-from . models import Counter, TaskList, CustomUser, ButtonState,Referral
+from . models import Counter, TaskList, CustomUser, Referral
 admin.site.register(Counter)
 admin.site.register(CustomUser)
-admin.site.register(ButtonState)
 admin.site.register(Referral)
 
 # Register your models here.

@@ -3,7 +3,7 @@
 {% load humanize %}
 
     {% block title %}
-    Beep | Task
+    Geeks | Task
     {% endblock %}
 <script src="{% static 'js/task.js'%}"></script>
 {% block content %}
@@ -152,11 +152,11 @@
     <div class="title">🎯 Tasks to Earn</div>
     {%for task in tasklist %}
     <div class="task-item youtube">
-        <div class="task-icon">📺</div>
+        <div class="task-icon">📢</div>
         <div class="task-content">
             <div class="task-title">{{ task.Taskname }}</div>
-            <div class="task-description">{{ task.description}}</div>
-            <span class="reward">{{ task.Taskvalue |intcomma}}</span>
+            <!-- <div class="task-description">{{ task.description}}</div> -->
+            <span class="reward">{{ task.Taskvalue |intcomma}} GK</span>
 
         </div>
         <form method="post" action="task" class="task-action" onsubmit="handleFormSubmit(this); return false;">

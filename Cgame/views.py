@@ -22,6 +22,8 @@ from .tokens import account_activation_token
 from django.core.mail import EmailMessage
 
 from django.urls import reverse
+from smtplib import SMTPException
+
 from django.http import Http404
 @login_required
 def home(request):
@@ -185,42 +187,6 @@ def leaderboard(request):
 
 User = get_user_model()
 
-# Signup View
-# def signup(request):
-#     if request.method == 'POST':
-#         form = CustomUserCreationForm(request.POST)
-#         if form.is_valid():
-#             user = form.save(commit=False)
-#             user.is_active = False
-#             user.save()
-#             current_site = get_current_site(request)
-            
-#             mail_subject = 'Activate your account.'
-#             message = render_to_string('activation_email.html', {
-#                 'user': user,
-#                 'domain': current_site.domain,
-#                 'uid': urlsafe_base64_encode(force_bytes(user.pk)),
-#                 'token': account_activation_token.make_token(user),
-#             })
-#             print(message)
-#             to_email = form.cleaned_data.get('email')
-#             email = EmailMessage(
-#                 mail_subject,
-#                 message,
-#                 'emmanuelumera@yahoo.com',
-#                 [to_email],
-#             )
-#             email.content_subtype = 'html'  # Set the email content type to HTML
-#             email.send()
-
-#             messages.success(request, 'Please confirm your email to complete the registration.')
-#             return redirect('login')
-#     else:
-#         form = CustomUserCreationForm()
-#     return render(request, 'signup.html', {'form': form})
-
-# from django.core.mail import EmailMessage, SMTPException
-# from django.contrib import messages
 
 def signup(request):
     if request.method == 'POST':
@@ -241,7 +207,7 @@ def signup(request):
                     'uid': urlsafe_base64_encode(force_bytes(user.pk)),
                     'token': account_activation_token.make_token(user),
                 })
-
+                print(message)
                 to_email = form.cleaned_data.get('email')
                 email = EmailMessage(
                     mail_subject,
@@ -276,30 +242,57 @@ def signup(request):
     form = CustomUserCreationForm()
     return render(request, 'signup.html', {'form': form})
     
-# Activation View
+#         return HttpResponse('Activation link is invalid or has expired.')
+
 def activate(request, uidb64, token):
     try:
         uid = force_str(urlsafe_base64_decode(uidb64))
         user = User.objects.get(pk=uid)
     except (TypeError, ValueError, OverflowError, User.DoesNotExist):
         user = None
-
-    if user is not None and account_activation_token.check_token(user, token):
-        user.is_active = True
-        user.save()
-        Counter.objects.create(user=user, value=2000)
-
-        # Level.objects.create(user=user, level=1)
-        backend = get_backends()[0] 
-        user.backend = f"{backend.__module__}.{backend.__class__.__name__}"
-        ##new ##
-        # process_referral_reward(referrer)
-
-        messages.success(request, 'Your account has been activated successfully!')
-        return redirect('login')
-    else:
         return HttpResponse('Activation link is invalid or has expired.')
 
+    if user is not None and account_activation_token.check_token(user, token):
+        try:
+            # Activate user
+            user.is_active = True
+            user.save()
+            
+            # Create counter for new user
+            Counter.objects.create(user=user, value=2000)
+            
+            # Set up backend for authentication
+            backend = get_backends()[0]
+            user.backend = f"{backend.__module__}.{backend.__class__.__name__}"
+            
+            # Find and process referral if it exists
+            try:
+                referral = Referral.objects.get(referred_user=user, status='pending')
+                # Process reward for the referrer (not the new user)
+                success = process_referral_reward(referral.referrer)
+                if success:
+                    print(f"Successfully processed referral reward for {referral.referrer.username}")
+                else:
+                    print("Failed to process referral reward")
+            except Referral.DoesNotExist:
+                print("No pending referral found for this user")
+            
+            messages.success(request, 'Your account has been activated successfully!')
+            return redirect('login')
+            
+        except Exception as e:
+            print(f"Activation error: {str(e)}")
+            # If anything fails during activation
+            user.is_active = False
+            user.save()
+            
+            # Mark referral as failed if it exists
+            Referral.objects.filter(referred_user=user).update(status='failed')
+            
+            messages.error(request, 'There was an error activating your account. Please try again.')
+            return redirect('login')
+    else:
+        return HttpResponse('Activation link is invalid or has expired.')
 
 def resend_verification_email(request):
     if request.method == 'POST':
@@ -328,89 +321,149 @@ def resend_verification_email(request):
 
 
 @login_required
+# def referral_dashboard(request):
+#     try:
+#         referral_code = request.user.referral_codes
+#     except ReferralCode.DoesNotExist:
+#         referral_code = ReferralCode.objects.create(user=request.user)
+
+#     referrals_made = Referral.objects.filter(referrer=request.user)
+    
+#     # Generate the full referral URL
+#     current_site = get_current_site(request)
+#     referral_url = f"http://{current_site.domain}{reverse('register')}?ref={referral_code.code}"
+
+#     context = {
+#         'referral_code': referral_code,
+#         'referral_url': referral_url,
+#         'referrals_made': referrals_made,
+#         'total_referrals': referrals_made.count(),
+#         'pending_rewards': referrals_made.filter(reward_claimed=False).count()
+#     }
+#     return render(request, 'invite.html', context)
+
+
+
 def referral_dashboard(request):
     try:
-        referral_code = request.user.referral_code
+        # Try to get existing referral code
+        referral_code = ReferralCode.objects.get(referrer=request.user)
     except ReferralCode.DoesNotExist:
-        referral_code = ReferralCode.objects.create(user=request.user)
+        # Create new referral code if none exists
+        referral_code = ReferralCode.objects.create(
+            referrer=request.user,
+            code=generate_unique_code()
+        )
 
+    # Get all referrals made by the user
     referrals_made = Referral.objects.filter(referrer=request.user)
-    
+
     # Generate the full referral URL
     current_site = get_current_site(request)
     referral_url = f"http://{current_site.domain}{reverse('register')}?ref={referral_code.code}"
 
+    # Prepare context for template
     context = {
         'referral_code': referral_code,
         'referral_url': referral_url,
         'referrals_made': referrals_made,
         'total_referrals': referrals_made.count(),
-        'pending_rewards': referrals_made.filter(reward_claimed=False).count()
+        'pending_rewards': referrals_made.filter(status='pending').count()  # Changed from reward_claimed to status
     }
+
     return render(request, 'invite.html', context)
+
+def generate_unique_code():
+    import random
+    import string
+    
+    while True:
+        # Generate a random code
+        code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
+        
+        # Check if code already exists
+        if not ReferralCode.objects.filter(code=code).exists():
+            return code
+
 
 def register_with_referral(request):
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
             try:
-
                 user = form.save(commit=False)
                 user.is_active = False
                 user.save()
-                current_site = get_current_site(request)   
-
+                current_site = get_current_site(request)
+                
                 # Check for referral code
                 referral_code = request.session.get('referral_code')
                 if referral_code:
                     try:
                         referrer_code = ReferralCode.objects.get(code=referral_code)
-                        referrer = referrer_code.user
-                        # print(referrer.counter.value)
+                        referrer = referrer_code.referrer  # Changed from .user to .referrer
                         
                         # Prevent self-referral
                         if referrer != user:
                             # Check if user hasn't been referred before
-                            if not Referral.objects.filter(referred_user=user).exists():
-                                Referral.objects.create(
-                                    referrer=referrer,
-                                    referred_user=user
-                                )
+                            existing_referral = Referral.objects.filter(referred_user=user)
+                            if existing_referral.exists():
+                                # Clean up the user if they already have a referral
+                                user.delete()
+                                messages.error(request, 'This email has already been referred.')
+                                return render(request, 'signup.html', {'form': form})
+                            
+                            # Create the referral but don't process reward yet
+                            referral = Referral.objects.create(
+                                referrer=referrer,
+                                referred_user=user,
+                                status='pending'
+                            )
+                            
+                            # Prepare and send activation email
+                            mail_subject = 'Activate your account.'
+                            message = render_to_string('activation_email.html', {
+                                'user': user,
+                                'domain': current_site.domain,
+                                'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+                                'token': account_activation_token.make_token(user),
+                            })
+                            print(message)
+                            to_email = form.cleaned_data.get('email')
+                            email = EmailMessage(
+                                mail_subject,
+                                message,
+                                'emmanuelumera@yahoo.com',
+                                [to_email],
+                            )
+                            email.content_subtype = 'html'
+                            
+                            try:
+                                email.send()
+                                messages.success(request, 'Please confirm your email to complete the registration.')
+                                # Don't process reward until email is confirmed
+                                return redirect('login')
+                            except (SMTPException, ConnectionError) as e:
+                                # If email fails, clean up everything
+                                referral.delete()
+                                user.delete()
+                                messages.error(request, 'Failed to send verification email. Please try again later.')
+                                return render(request, 'signup.html', {'form': form})
                                 
-                                mail_subject = 'Activate your account.'
-                                message = render_to_string('activation_email.html', {
-                                    'user': user,
-                                    'domain': current_site.domain,
-                                    'uid': urlsafe_base64_encode(force_bytes(user.pk)),
-                                    'token': account_activation_token.make_token(user),
-                                })
-                                to_email = form.cleaned_data.get('email')
-                                email = EmailMessage(
-                                    mail_subject,
-                                    message,
-                                    'emmanuelumera@yahoo.com',
-                                    [to_email],
-                                )
-                                email.content_subtype = 'html'  # Set the email content type to HTML
-                                try:
-                                    email.send()
-                                    messages.success(request, 'Please confirm your email to complete the registration.')
-                                    return redirect('login')
-                                except (SMTPException, ConnectionError) as e:
-                                    # If email fails, delete the inactive user and show error
-                                    user.delete()
-                                    messages.error(request, 'Failed to send verification email. Please try again later.')
-                                    return render(request, 'signup.html', {'form': current_site})
-
                     except ReferralCode.DoesNotExist:
-                        messages.error(request, 'Your referral code was Invalid. Verify your email address')
-                
-                return redirect('signup')
+                        # Clean up user if referral code is invalid
+                        user.delete()
+                        messages.error(request, 'Your referral code was Invalid. Please try again.')
+                        return render(request, 'signup.html', {'form': form})
+                        
             except Exception as e:
-                user.delete()
-                # Handle any other unexpected errors
+                # Clean up any partially created records
+                Referral.objects.filter(referred_user=user).delete()
+                if user.pk:
+                    user.delete()
                 messages.error(request, 'An unexpected error occurred. Please try again.')
-                return render(request, 'signup.html', {'form': current_site})
+                print(e)
+                return render(request, 'signup.html', {'form': form})
     else:
         # Store referral code in session if provided
         ref_code = request.GET.get('ref')
@@ -421,27 +474,47 @@ def register_with_referral(request):
     return render(request, 'signup.html', {'form': form})
 
 
-def process_referral_reward(user):
-    """
-    Process the reward for a successful referral
-    You can customize this based on your reward system
-    """
-    # print(cofond.is_active)
-    # if cofond.is_active == True
 
-    # Example: Add points or tokens to user's account
+
+
+#######################
+# Bug to fix 
+# > get() returned more than one Referral -- it returned 6!
+# the solution is to make sure pending referral are skipped or removed so as to allow new onces claude will fix this 
+
+def process_referral_reward(referrer):
+    """
+    Process the reward for a successful referral.
+    Returns True if the reward was processed, False otherwise.
+    """
     try:
-        referral = Referral.objects.get(referrer=user, reward_claimed=False)
-        # Add your reward logic here
-        # For example:
-
-        user.counter.value += 100000
-        user.counter.save()
-
-        referral.reward_claimed = True
-        referral.save()
-        return True
-    except Referral.DoesNotExist:
+        # Find all pending referrals for this referrer
+        pending_referrals = Referral.objects.filter(
+            referrer=referrer,
+            status='pending'
+        )
+        
+        if pending_referrals.exists():
+            # Get the referrer's counter
+            try:
+                counter = referrer.counter
+                counter.value += 100000
+                counter.save()
+                
+                # Update all pending referrals to completed
+                pending_referrals.update(status='completed')
+                
+                print(f"Processed reward for referrer {referrer.username}: +100000")
+                print(f"New counter value: {counter.value}")
+                return True
+                
+            except Exception as e:
+                print(f"Error updating counter: {str(e)}")
+                return False
+        else:
+            print(f"No pending referrals found for {referrer.username}")
+            return False
+            
+    except Exception as e:
+        print(f"Error processing referral reward: {str(e)}")
         return False
-
-

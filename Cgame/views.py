@@ -74,7 +74,7 @@ def get_balance(request):
     """
     formatted_counter_value = f"{request.user.counter.value:,}"
     return JsonResponse({'balance': formatted_counter_value})
-
+    
 @login_required
 def taskList(request):
     counter = request.user.counter
@@ -86,21 +86,37 @@ def taskList(request):
         redirect_url = request.POST.get('redirect_url')
         
         if task_value and task_id:
-            counter.value += int(task_value)
-            counter.save()
+            try:
+                counter.value += int(task_value)
+                counter.save()
 
-            task = TaskList.objects.get(id=task_id)
-            task.assigned_users.remove(request.user)
-            
-            # Return JSON response instead of redirecting
-            return JsonResponse({
-                'success': True,
-                'message': f"Task '{task.Taskname}' completed successfully!",
-                'redirect_url': redirect_url
-            })
-            
+                task = TaskList.objects.get(id=task_id)
+                task.assigned_users.remove(request.user)
+                
+                # Check if it's an AJAX request
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({
+                        'success': True,
+                        'message': f"Task '{task.Taskname}' completed successfully!",
+                        'redirect_url': redirect_url
+                    })
+                else:
+                    # Regular form submission fallback
+                    messages.success(request, f"Task '{task.Taskname}' completed successfully!")
+                    return redirect(redirect_url)
+            except Exception as e:
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({
+                        'success': False,
+                        'message': str(e)
+                    })
+                else:
+                    messages.error(request, f"An error occurred: {str(e)}")
+                    return redirect('/task')
+
     context = {"tasklist": user_tasks}
     return render(request, 'task.html', context)
+
 
 
 def login_view(request):

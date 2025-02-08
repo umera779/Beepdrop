@@ -5,36 +5,10 @@
     {% block title %}
     Geeks | Task
     {% endblock %}
-<script src="{% static 'js/task.js'%}"></script>
 {% block content %}
+
 <body class="bg-gray-800  dark:focus:ring-gray-700">
-  <!-- <div class="max-w-2xl mx-auto mt-8 bg-gray-900 shadow-md rounded-lg p-6 bg-gray-50 dark:bg-gray-700 dark:border-gray-600 ">
-    <h6 class="text-2xl font-bold text-center text-red-200 mb-1 ">Task</h2>
-      
-     
-  {%for task in tasklist %}
-        <div class="flex items-center justify-between p-4 bg-gray-800 rounded-lg mb-4 shadow text-white bg-gray-800 border-t border-gray-200 left-1/2 dark:bg-gray-700 dark:border-gray-600">
 
-      <div>
-        <p class="text-lg font-semibold text-white-800">{{ task.Taskname }}</p>
-        <p class="text-sm text-gray-300"> {{ task.Taskvalue |intcomma}} keys</p>
-
-      </div>
-       <form method="post" action="task" class="task-action" onsubmit="handleFormSubmit(this); return false;">
-                    {% csrf_token %}
-                    <input type="hidden" name="taskvalue" value="{{ task.Taskvalue }}">
-                    <input type="hidden" name="task_id" value="{{ task.id }}">
-                    <input type="hidden" name="redirect_url" value="{{task.link}}"/>
-      <button type="submit" class="bg-green-500 text-white px-4 py-2 text-sm rounded-lg focus:outline-none ">
-        Go
-      </button>
-    </form>
-</div>
-{%endfor%}
-  </div> -->
-
-
- 
   <style>
     * {
         margin: 0;
@@ -147,6 +121,9 @@
     }
 </style>
 </head>
+<script src="https://ajax.aspnetCDN.com/ajax/jQuery/jQuery-3.3.1.min.js"></script>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+
 <body>
 <div class="tasks">
     <div class="title">🎯 Tasks to Earn</div>
@@ -159,7 +136,7 @@
             <span class="reward">{{ task.Taskvalue |intcomma}} GK</span>
 
         </div>
-        <form method="post" action="task" class="task-action" onsubmit="handleFormSubmit(this); return false;">
+        <!-- <form method="post" action="task" class="task-action" onsubmit="handleFormSubmit(this); return false;">
           {% csrf_token %}
           <input type="hidden" name="taskvalue" value="{{ task.Taskvalue }}">
           <input type="hidden" name="task_id" value="{{ task.id }}">
@@ -167,7 +144,16 @@
         <button type="submit" class="reward-go">
           Go
         </button>
-      </form>
+      </form> -->
+      <form method="post" action="{% url 'task' %}" class="task-action" onsubmit="handleFormSubmit(this); return false;">
+        {% csrf_token %}
+        <input type="hidden" name="taskvalue" value="{{ task.Taskvalue }}">
+        <input type="hidden" name="task_id" value="{{ task.id }}">
+        <input type="hidden" name="redirect_url" value="{{ task.link }}"/>
+        <button type="submit" class="reward-go">
+            Go
+        </button>
+    </form>
     </div>
     {% endfor %}
     </div>
@@ -175,16 +161,50 @@
 
 </body>
 <script>
-function handleFormSubmit(form) {
-    const redirectUrl = form.querySelector('input[name="redirect_url"]').value;
-
-    // Open the redirect URL in a new tab/window
-    window.open(redirectUrl, '_blank');
-
-    // Optionally, you can submit the form to log the action or process tasks on the server
-//form.submit();
-  }
-</script>
-
+    function handleFormSubmit(form) {
+        const formData = new FormData(form);
+        
+        fetch(form.action, {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Store the current page URL in localStorage
+                localStorage.setItem('previousPage', window.location.href);
+                
+                // Open external link in a new window using Telegram's method
+                if (window.Telegram?.WebApp) {
+                    window.Telegram.WebApp.openLink(data.redirect_url);
+                } else {
+                    window.open(data.redirect_url, '_blank');
+                }
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    }
+    
+    // Function to handle return to web app
+    function handleReturnToApp() {
+        const previousPage = localStorage.getItem('previousPage');
+        if (previousPage) {
+            window.location.href = previousPage;
+        }
+    }
+    
+    // Check if we're returning from an external link
+    document.addEventListener('DOMContentLoaded', () => {
+        if (window.Telegram?.WebApp) {
+            const webapp = window.Telegram.WebApp;
+            
+            // Set up back button
+            webapp.BackButton.show();
+            webapp.BackButton.onClick(() => {
+                handleReturnToApp();
+            });
+        }
+    });
+    </script>
 </html>
 

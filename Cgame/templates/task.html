@@ -161,50 +161,51 @@
 
 </body>
 <script>
-    function handleFormSubmit(form) {
-        const formData = new FormData(form);
-        
-        fetch(form.action, {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Store the current page URL in localStorage
-                localStorage.setItem('previousPage', window.location.href);
-                
-                // Open external link in a new window using Telegram's method
-                if (window.Telegram?.WebApp) {
-                    window.Telegram.WebApp.openLink(data.redirect_url);
-                } else {
-                    window.open(data.redirect_url, '_blank');
-                }
-            }
-        })
-        .catch(error => console.error('Error:', error));
+    document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Telegram WebApp
+    const tg = window.Telegram?.WebApp;
+    if (tg) {
+        tg.ready();
+        // Enable back button if needed
+        tg.BackButton.show();
     }
+});
+
+function handleFormSubmit(form) {
+    event.preventDefault(); // Prevent default form submission
+    const formData = new FormData(form);
     
-    // Function to handle return to web app
-    function handleReturnToApp() {
-        const previousPage = localStorage.getItem('previousPage');
-        if (previousPage) {
-            window.location.href = previousPage;
+    fetch(form.action, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
         }
-    }
-    
-    // Check if we're returning from an external link
-    document.addEventListener('DOMContentLoaded', () => {
-        if (window.Telegram?.WebApp) {
-            const webapp = window.Telegram.WebApp;
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Store current state if needed
+            localStorage.setItem('previousPage', window.location.href);
             
-            // Set up back button
-            webapp.BackButton.show();
-            webapp.BackButton.onClick(() => {
-                handleReturnToApp();
-            });
+            // Handle the redirect using Telegram's openLink
+            if (window.Telegram?.WebApp) {
+                window.Telegram.WebApp.openLink(data.redirect_url, {
+                    try_instant_view: false
+                });
+            } else {
+                // Fallback for non-Telegram environment
+                window.location.href = data.redirect_url;
+            }
         }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while processing your request.');
     });
-    </script>
+    
+    return false; // Prevent form submission
+}
+</script>
 </html>
 

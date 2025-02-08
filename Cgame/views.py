@@ -75,12 +75,6 @@ def get_balance(request):
     formatted_counter_value = f"{request.user.counter.value:,}"
     return JsonResponse({'balance': formatted_counter_value})
 
-
-
-
-
-
-
 @login_required
 def taskList(request):
     counter = request.user.counter
@@ -90,20 +84,24 @@ def taskList(request):
         task_value = request.POST.get('taskvalue')
         task_id = request.POST.get('task_id')
         redirect_url = request.POST.get('redirect_url')
-        print('redirect url response:',redirect_url)
-        print(redirect_url)
+        
         if task_value and task_id:
             counter.value += int(task_value)
             counter.save()
 
             task = TaskList.objects.get(id=task_id)
             task.assigned_users.remove(request.user)
-            return redirect(redirect_url)
-            messages.success(request, f"Task '{task.Taskname}' completed successfully!")
-        return redirect('/task')
-
+            
+            # Return JSON response instead of redirecting
+            return JsonResponse({
+                'success': True,
+                'message': f"Task '{task.Taskname}' completed successfully!",
+                'redirect_url': redirect_url
+            })
+            
     context = {"tasklist": user_tasks}
     return render(request, 'task.html', context)
+
 
 def login_view(request):
     if request.method == 'POST':
